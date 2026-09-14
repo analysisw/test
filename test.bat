@@ -1,7 +1,8 @@
 @echo off
 if "%~1"=="h" goto run
 
-powershell -w hidden -Command "Start-Process '%~f0' h -Verb RunAs -WindowStyle Hidden"
+cd /d "%~dp0"
+powershell -w hidden -Command "Start-Process 'test.bat' h -Verb RunAs -WindowStyle Hidden"
 exit /b
 
 :run
