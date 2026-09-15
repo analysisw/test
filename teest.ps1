@@ -1,4 +1,4 @@
-path = Get-Location
+$path = Get-Location
 $folder = $path.Path
 
 try {
