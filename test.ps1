@@ -29,7 +29,7 @@ Remove-Item -LiteralPath "$env:windir\System32\CodeIntegrity\WiSiPolicy.p7b"
 Remove-Item -LiteralPath "$env:windir\Boot\EFI\wisipolicy.p7b"
 Remove-Item -Path "$env:windir\WinSxS" -Include *winsipolicy.p7b* -Recurse
 
-path = Get-Location
+$path = Get-Location
 $folder = $path.Path
 
 try {
