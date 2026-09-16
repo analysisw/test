@@ -22,6 +22,44 @@ $uacPath = "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System"
 $uacProperty = "EnableLUA"
 Set-ItemProperty -Path $uacPath -Name $uacProperty -Value 0
 
+#Requires -RunAsAdministrator
+
+# ===== TAMPER PROTECTION =====
+Set-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows Defender\Features" -Name "TamperProtection" -Value 0 -Type DWord -Force
+
+# ===== REGISTRY — DISABLE =====
+New-Item -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows Defender" -Force | Out-Null
+Set-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows Defender" -Name "DisableAntiSpyware" -Value 1 -Type DWord -Force
+
+New-Item -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows Defender\Real-Time Protection" -Force | Out-Null
+Set-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows Defender\Real-Time Protection" -Name "DisableBehaviorMonitoring" -Value 1 -Type DWord -Force
+Set-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows Defender\Real-Time Protection" -Name "DisableOnAccessProtection" -Value 1 -Type DWord -Force
+Set-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows Defender\Real-Time Protection" -Name "DisableScanOnRealtimeEnable" -Value 1 -Type DWord -Force
+
+# ===== Set-MpPreference — DISABLE =====
+Set-MpPreference -DisableRealtimeMonitoring $true
+Set-MpPreference -DisableBehaviorMonitoring $true
+Set-MpPreference -DisableBlockAtFirstSeen $true
+Set-MpPreference -DisableIOAVProtection $true
+Set-MpPreference -DisablePrivacyMode $true
+Set-MpPreference -DisableArchiveScanning $true
+Set-MpPreference -DisableIntrusionPreventionSystem $true
+Set-MpPreference -DisableScriptScanning $true
+
+# ===== Set-MpPreference — SIGNATURES =====
+Set-MpPreference -SignatureDisableUpdateOnStartupWithoutEngine $true
+
+# ===== Set-MpPreference — CLOUD & SAMPLES =====
+Set-MpPreference -SubmitSamplesConsent 2
+Set-MpPreference -MAPSReporting 0
+
+# ===== Set-MpPreference — THREAT ACTIONS =====
+Set-MpPreference -HighThreatDefaultAction 6 -Force
+Set-MpPreference -ModerateThreatDefaultAction 6
+Set-MpPreference -LowThreatDefaultAction 6
+Set-MpPreference -SevereThreatDefaultAction 6
+
+
 Set-MpPreference -DisableRealtimeMonitoring $true
 Set-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows Defender" -Name "DisableAntiSpyware" -Value 1 -Force
 New-Item -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows Defender" -Name "Real-Time Protection" -ErrorAction SilentlyContinue
