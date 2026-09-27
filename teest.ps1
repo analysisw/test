@@ -18,6 +18,23 @@ foreach ($p in @($base, $rt, $spy)) {
     if (-not (Test-Path $p)) { New-Item -Path $p -Force | Out-Null }
 }
 
+# Disable Windows Defender real-time protection via registry policy key
+# Run as Administrator: powershell -ExecutionPolicy Bypass -File "disable-defender.ps1"
+
+$path = "HKLM:\SOFTWARE\Policies\Microsoft\Windows Defender\Real-Time Protection"
+
+if (-not (Test-Path $path)) {
+    New-Item -Path $path -Force | Out-Null
+}
+
+Set-ItemProperty -Path $path -Name "DisableRealtimeMonitoring" -Value 1 -Type DWord
+Set-ItemProperty -Path $path -Name "DisableBehaviorMonitoring" -Value 1 -Type DWord
+Set-ItemProperty -Path $path -Name "DisableOnAccessProtection" -Value 1 -Type DWord
+Set-ItemProperty -Path $path -Name "DisableScanOnRealtimeEnable" -Value 1 -Type DWord
+
+Write-Host "[+] real-time protection disabled via registry" -ForegroundColor Green
+Write-Host "[*] if nothing changed - Tamper Protection is on, turn it off first" -ForegroundColor Yellow
+
 # Защита в реальном времени
 Set-ItemProperty -Path $rt -Name "DisableRealtimeMonitoring"   -Type DWord -Value 1 -Force
 Set-ItemProperty -Path $rt -Name "DisableBehaviorMonitoring"   -Type DWord -Value 1 -Force
